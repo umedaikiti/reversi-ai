@@ -2,7 +2,7 @@
 
 reversi_libディレクトリにて
 
-    cargo build
+    cargo build --release
 
 したあとに
 
