@@ -1,0 +1,13 @@
+[package]
+name = "reversi_bench"
+version = "0.1.0"
+authors = ["umedaikiti <umedaikiti@gmail.com>"]
+
+[dependencies]
+rand="0.3.0"
+time = "0.1"
+reversi_ai = {path = "../reversi_ai"}
+
+[[bin]]
+name = "reversi_bench"
+path = "src/main.rs"

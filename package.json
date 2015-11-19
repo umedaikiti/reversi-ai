@@ -1,0 +1,17 @@
+{
+  "name": "reversi-ai",
+  "main": "main.js",
+  "repository" : "",
+  "scripts": {
+    "start": "electron --enable-logging .",
+	"postinstall": "./node_modules/.bin/electron-rebuild"
+  },
+  "dependencies": {
+    "electron-prebuilt": "^0.35.0",
+    "ffi": "^2.0.0",
+    "jquery": "^2.1.4"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.0.2"
+  }
+}
