@@ -31,7 +31,21 @@ function transition()
 	ai_has_moves = libreversi.has_valid_moves(ai.charCodeAt(0));
 	if(!player_has_moves && !ai_has_moves) {
 		game_state.finished = true;
-		alert('game over');
+		result = libreversi.count_disks();
+		var s = "GAME OVER\n"
+		if(result.white == result.black){
+			s += 'draw';
+		}
+		else{
+			s += 'You ';
+			if(result.white > result.black){
+				s += game_state.player == 'O' ? 'win!' : 'lose!';
+			}
+			else{
+				s += game_state.player == 'X' ? 'win!' : 'lose!';
+			}
+		}
+		alert(s);
 	}
 	else if(!player_has_moves && ai_has_moves){
 		game_state.turn = ai;

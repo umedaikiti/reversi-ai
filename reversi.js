@@ -24,7 +24,25 @@ ai_think: function (c)
 },
 has_valid_moves: libreversi.has_valid_moves,
 get_board: libreversi.get_board,
-set_disk: libreversi.set_disk
+set_disk: libreversi.set_disk,
+count_disks: function ()
+{
+	var white = 0;
+	var black = 0;
+	for(var i=0;i<8;i++) for(var j=0;j<8;j++) {
+		var c = libreversi.get_board(i, j);
+		if(c == 'O'.charCodeAt(0)) {
+			white++;
+		}
+		else if(c == 'X'.charCodeAt(0)) {
+			black++;
+		}
+	}
+	return {
+		'white': white,
+		'black': black
+	};
+}
 };
 
 //console.log(libreversi.set_disk(false, 2, 3, 'X'.charCodeAt(0)));
