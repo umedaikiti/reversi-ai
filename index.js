@@ -6,12 +6,7 @@ var libreversi = remote.require('./reversi.js');
 const ipcMain = remote.require('electron').ipcMain;
 const ipcRenderer = require('electron').ipcRenderer;
 
-var game_state = {
-	'player' : 'O',
-	'turn' : 'O',
-	'count' : 1,
-	'finished' : false
-};
+var game_state = {};
 
 function opponent(p)
 {
@@ -29,16 +24,16 @@ function transition()
 	game_state.count++;
 	player_has_moves = libreversi.has_valid_moves(player.charCodeAt(0));
 	ai_has_moves = libreversi.has_valid_moves(ai.charCodeAt(0));
+	var count = libreversi.count_disks();
 	if(!player_has_moves && !ai_has_moves) {
 		game_state.finished = true;
-		result = libreversi.count_disks();
 		var s = "GAME OVER\n"
-		if(result.white == result.black){
+		if(count.white == count.black){
 			s += 'draw';
 		}
 		else{
 			s += 'You ';
-			if(result.white > result.black){
+			if(count.white > count.black){
 				s += game_state.player == 'O' ? 'win!' : 'lose!';
 			}
 			else{
@@ -56,23 +51,14 @@ function transition()
 	else {
 		game_state.turn = opponent(game_state.turn);
 	}
+	game_state.white = count.white;
+	game_state.black = count.black;
 	status_update(game_state);
 	if(!game_state.finished && game_state.turn == ai){
-//		setTimeout(ai_turn, 10);
 		setTimeout(ai_turn_begin, 10);
 	}
 }
-/*
-function ai_turn()
-{
-	$('#board').css('pointer-events', 'none');
-	var ai = opponent(game_state.player);
-	m = libreversi.ai_think(ai);
-	set_disk(m.pass, m.x, m.y, ai);
-	$('#board').css('pointer-events', 'auto');
-	transition();
-}
-*/
+
 function ai_turn_begin()
 {
 	$('#board').css('pointer-events', 'none');
@@ -86,10 +72,7 @@ function ai_turn_end(event, m)
 	$('#board').css('pointer-events', 'auto');
 	transition();
 }
-ipcMain.on('ai-think', function(event, arg) {
-	m = libreversi.ai_think(arg);
-	event.sender.send('ai-reply', m);
-});
+ipcMain.on('ai-think', libreversi.ai_think_event);
 ipcRenderer.on('ai-reply', ai_turn_end);
 function set_disk(pass, x, y, c) 
 {
@@ -117,6 +100,11 @@ function set_disk(pass, x, y, c)
 		}
 		update();
 		append_log(s);
+		game_state.log.push({
+			x: x,
+			y: y,
+			color: c
+		});
 	}
 	return result;
 }
@@ -138,6 +126,15 @@ function update()
 		}
 	}
 }
+
+function flush_log()
+{
+	var subWindow = remote.getGlobal('subWindow');
+	if(subWindow !== null){
+		subWindow.webContents.send('flush-log');
+	}
+}
+
 function append_log(str)
 {
 	var subWindow = remote.getGlobal('subWindow');
@@ -153,6 +150,25 @@ function status_update(state)
 		subWindow.webContents.send('statusupdate', state);
 	}
 }
+function reset()
+{
+	libreversi.reset();
+	game_state = {
+		'player' : 'X',
+		'turn' : 'X',
+		'count' : 1,
+		'finished' : false,
+		'white': 2,
+		'black': 2,
+		'log': []
+	};
+	//$.extend(true, game_state, game_state0);
+}
+function init()
+{
+	update();
+	status_update(game_state);
+}
 $(function(){
 	$('.row').click(function(){
 		if(!game_state.finished && game_state.turn == game_state.player) {
@@ -165,7 +181,19 @@ $(function(){
 			}
 		}
 	});
-update();
-status_update(game_state);
+	$(window).keydown(function(e){
+		if(e.keyCode == 27){
+			if(game_state.finished){
+				if(window.confirm('reset?')){
+					flush_log();
+					reset();
+					init();
+				}
+			}
+		}
+	});
+	reset();
+	init();
+	console.log(process.type)
 });
 

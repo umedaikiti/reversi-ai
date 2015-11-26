@@ -1,6 +1,6 @@
 extern crate reversi_ai;
 use reversi_ai::reversi::{ReversiBoard, Color, U64Board, Move};
-use reversi_ai::reversi::reversi_ai::best_move_alpha_beta;
+use reversi_ai::reversi::reversi_ai::best_move_alpha_beta2;
 static mut board : U64Board = reversi_ai::reversi::U64BOARD0;
 
 fn convert_color(color : char) -> Color {
@@ -10,6 +10,10 @@ fn convert_color(color : char) -> Color {
     else {
         Color::X
     };
+}
+#[no_mangle]
+pub unsafe extern fn reset() {
+    board = reversi_ai::reversi::U64BOARD0;
 }
 
 #[no_mangle]
@@ -34,7 +38,7 @@ pub unsafe extern fn set_disk(pass : bool, x : u32, y : u32, color : char) -> bo
 
 #[no_mangle]
 pub unsafe extern fn ai_think(color : char) -> u32 {
-    return match best_move_alpha_beta(&board, convert_color(color)) {
+    return match best_move_alpha_beta2(&board, convert_color(color)) {
         Move::Pass => 0xFFFFFFFF,
         Move::Mv(x, y) => (x << 3) | y,
     };

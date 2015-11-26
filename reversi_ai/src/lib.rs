@@ -185,8 +185,25 @@ pub mod reversi {
                 return self.1.cmp(&other.1);
             }
         }
-        fn eval_base1<T : super::ReversiBoard>(b : &T, c : super::Color) -> i32 {
+        fn eval_base0<T : super::ReversiBoard>(b : &T, c : super::Color) -> i32 {
             let mut v : i32 = 0;
+            for i in 0..8 {
+                for j in 0..8 {
+                    if let Some(x) = b.get(i, j) {
+                        if x == c {
+                            v += 1;
+                        }
+                        else {
+                            v -= 1;
+                        }
+                    }
+                }
+            }
+            return v;
+        }
+        fn eval_base1<T : super::ReversiBoard>(b : &T, c : super::Color) -> i32 {
+            let mut vp : i32 = 0;
+            let mut vn : i32 = 0;
             for i in 0..8 {
                 for j in 0..8 {
                     let dv = if ((i == 0) || (i == 7)) && ((j == 0) || (j == 7)) {
@@ -209,15 +226,23 @@ pub mod reversi {
                     };
                     if let Some(x) = b.get(i, j) {
                         if x == c {
-                            v += dv;
+                            vp += dv;
                         }
                         else {
-                            v -= dv;
+                            vn += dv;
                         }
                     }
                 }
             }
-            return v;
+            if vn == 0 {
+                return INF;
+            }
+            else if vp == 0 {
+                return -INF;
+            }
+            else {
+                return vp - vn;
+            }
         }
         fn eval<T : super::ReversiBoard + Clone, F>(b : &T, c : super::Color, depth : u32, resource : u32, eval_base : &F) -> MvVal
          where F : Fn(&T, super::Color) -> i32 {
@@ -267,7 +292,23 @@ pub mod reversi {
             return eval(b, c, 10, 50000, &eval_base1).0;
         }
         pub fn best_move_alpha_beta<T : super::ReversiBoard + Clone>(b : &T, c : super::Color) -> super::Move {
-            return eval_alpha_beta(b, c, INF, 20, 1000000, &eval_base1).0;
+            return eval_alpha_beta(b, c, INF, 20, 10000000, &eval_base1).0;
+        }
+        pub fn best_move_alpha_beta2<T : super::ReversiBoard + Clone>(b : &T, c : super::Color) -> super::Move {
+            let mut v : i32 = 0;
+            for i in 0..8 {
+                for j in 0..8 {
+                    if b.get(i, j) == None {
+                        v += 1;
+                    }
+                }
+            }
+            if v < 15 {
+                return eval_alpha_beta(b, c, INF, 20, 1000000, &eval_base0).0;
+            }
+            else {
+                return eval_alpha_beta(b, c, INF, 20, 1000000, &eval_base1).0;
+            }
         }
         pub fn has_valid_moves<T : super::ReversiBoard>(b : &T, c : super::Color) -> bool {
             return !b.valid_moves(c).is_empty();

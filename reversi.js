@@ -1,13 +1,13 @@
 var FFI = require('ffi');
 
 var libreversi = FFI.Library('./reversi_lib/target/release/libreversi', {
+	'reset': ['void', []],
 	'get_board': ['char', ['uint32', 'uint32']],
 	'set_disk': ['bool', ['bool', 'uint32', 'uint32', 'char']],
 	'ai_think': ['uint32', ['char']],
 	'has_valid_moves': ['bool', ['char']]
 });
-module.exports = {
-ai_think: function (c)
+function ai_think(c)
 {
 	var mv = libreversi.ai_think(c.charCodeAt(0));
 	var r = {
@@ -21,7 +21,15 @@ ai_think: function (c)
 		r.y = mv & 7;
 	}
 	return r;
+}
+
+module.exports = {
+ai_think_event : function(event, arg) {
+	//console.log(process.type);
+	m = ai_think(arg);
+	event.sender.send('ai-reply', m);
 },
+reset: libreversi.reset,
 has_valid_moves: libreversi.has_valid_moves,
 get_board: libreversi.get_board,
 set_disk: libreversi.set_disk,

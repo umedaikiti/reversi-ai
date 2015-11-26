@@ -24,42 +24,48 @@ fn player3(b : &U64Board, c : Color) -> Move {
     return reversi_ai::reversi::reversi_ai::best_move_alpha_beta(b, c);
 }
 
+fn battle<F1, F2>(player_first : &F1, player_second : &F2) -> (u32, u32)
+where F1 : Fn(&U64Board, Color) -> Move, F2 : Fn(&U64Board, Color) -> Move
+{
+    let mut b = U64Board::new();
+    let mut passed = false;
+    let mut c = Color::X;
+    loop {
+        let start = time::precise_time_ns();
+        let m = if c == Color::X {
+            player_first(&b, c)
+        } else {
+            player_second(&b, c)
+        };
+        let end = time::precise_time_ns();
+        println!("{:?}ns", end-start);
+        if m == Move::Pass {
+            if passed {
+                break;
+            }
+            passed = true;
+        } else {
+            passed = false;
+        }
+        println!("{:?}", m);
+        b.do_move(m, c);
+        b.print();
+        c = c.opposite_color();
+    }
+    let (so, sx) = b.result();
+    return (sx, so);
+}
+
 fn main() {
-    let mut p1_color = Color::O;
     let mut p1 = 0;
     let mut p2 = 0;
-    for _ in 0..100 {
-        let mut b = U64Board::new();
-        let mut passed = false;
-        let mut c = Color::O;
-        loop {
-            let start = time::precise_time_ns();
-            let m = if c == p1_color {
-                player2(&b, c)
-            } else {
-                player3(&b, c)
-            };
-            let end = time::precise_time_ns();
-            println!("{:?}ns", end-start);
-            if m == Move::Pass {
-                if passed {
-                    break;
-                }
-                passed = true;
-            } else {
-                passed = false;
-            }
-            println!("{:?}", m);
-            b.do_move(m, c);
-            b.print();
-            c = c.opposite_color();
+    for i in 0..100 {
+        let (s1, s2) = if i % 2 == 0 {
+            battle(&player2, &player3)
         }
-        let (so, sx) = b.result();
-        let (s1, s2) = if p1_color == Color::O {
-            (so, sx)
-        }
-        else {
-            (sx, so)
+        else{
+            let (s2, s1) = battle(&player3, &player2);
+            (s1, s2)
         };
         println!("result: {:?}", (s1, s2));
         if s1 > s2 {
@@ -68,7 +74,6 @@ fn main() {
         if s2 > s1 {
             p2 += 1;
         }
-        p1_color = p1_color.opposite_color();
     }
     println!("Final result: {:?} vs {:?}", p1, p2);
 }

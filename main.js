@@ -7,11 +7,14 @@ app.on('ready', function () {
   mainWindow = new BrowserWindow({
 //	useContentSize: true,
 	resizable: false,
+	x: 0,
     width: 640,
     height: 640
   });
   mainWindow.loadURL('file://' + __dirname + '/index.html');
   subWindow = new BrowserWindow({
+    x: 0,
+	y: 0,
     width: 350,
     height: 400
   });
