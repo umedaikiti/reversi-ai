@@ -1,7 +1,10 @@
 {
   "name": "reversi-ai",
   "main": "main.js",
-  "repository" : "",
+  "repository" : {
+  	"type" : "git",
+	"url" : "https://github.com/umedaikiti/reversi-ai"
+  },
   "scripts": {
     "start": "electron --enable-logging .",
 	"postinstall": "./node_modules/.bin/electron-rebuild"
